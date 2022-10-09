@@ -5,14 +5,13 @@
 // declaração das funções
 float **alocaMatriz(int n);
 void preencheMatriz(float **mat, int n);
+float determinante(float **mat, int n);
+float **matrizInversa(float **mat_inv, float **mat, float det, int n);
+void matrizMudancaDeBase(float **mat1, float **mat2, float **mat3, int n);
 void imprimeMatriz(float **mat, int n);
-float determinanteCofator(float **mat, int n);
-float **cofator(float **mat, int n);
-float **transposta(float **mat, float **cofator, int n);
-float **multiplicaMatrizes(float **mat1, float **mat2, float **mat3, int n);
 
 int main(void){
-    float **mat_a, **mat_b, **mat_mb, **inv_b, det_a, det_b;
+    float **mat_a, **mat_b, **inv_a, **inv_b, **mb_ab, **mb_ba, det_a, det_b;
     int n;
 
     printf("Informe a dimensão da matriz: ");
@@ -21,8 +20,10 @@ int main(void){
     // alocação dinâmica das matrizes
     mat_a = alocaMatriz(n);
     mat_b = alocaMatriz(n);
+    inv_a = alocaMatriz(n);
     inv_b = alocaMatriz(n);
-    mat_mb = alocaMatriz(n);
+    mb_ab = alocaMatriz(n);
+    mb_ba = alocaMatriz(n);
 
     // leitura das matrizes A e B
     puts("Matriz A");
@@ -30,41 +31,44 @@ int main(void){
     puts("Matriz B");
     preencheMatriz(mat_b, n);
 
-    // calcula determinante das matrizes A e B
-    det_a = determinanteCofator(mat_a, n);
-    det_b = determinanteCofator(mat_b, n);
+    // determinante das matrizes A e B
+    det_a = determinante(mat_a, n);
+    det_b = determinante(mat_b, n);
 
     // verifica se são bases para calcular matriz inversa
     if(det_a && det_b){
-        inv_b = cofator(mat_b, n);
-    }
-    else{
-        if(det_a == 0 && det_b == 0){
+        inv_a = matrizInversa(inv_a, mat_a, det_a, n);
+        inv_b = matrizInversa(inv_b, mat_b, det_b, n);
+    }else{
+        if(!det_a && !det_b)
             puts("Nenhuma delas são uma base!");
-        }
-        else if(det_a == 0){
+        else if(!det_a)
             puts("A matriz A não é uma base!");
-        }
-        else if(det_b == 0){
+        else if(!det_b)
             puts("A matriz B não é uma base!");
-        }
+        puts("Obs.: uma matriz é uma base quando é Linearmente Independente, ou seja, quando tem Determinante ≠ 0");
         return 0;
     }
     
-    // multiplica a matriz inversa de B pela matriz A para encontrar matriz de mudança de base
-    mat_mb = multiplicaMatrizes(inv_b, mat_a, mat_mb, n);
+    // calcula as matrizes de mudança de base
+    matrizMudancaDeBase(inv_b, mat_a, mb_ab, n);
+    matrizMudancaDeBase(inv_a, mat_b, mb_ba, n);
 
     // saída de dados
     puts("Matriz A");
     imprimeMatriz(mat_a, n);
     puts("Matriz B");
     imprimeMatriz(mat_b, n);
-    printf("Determinante da Matriz A = %.1f\n\n", det_a);
-    printf("Determinante da Matriz B = %.1f\n\n", det_b);
+    printf("Determinante da matriz A = %.1f\n\n", det_a);
+    printf("Determinante da matriz B = %.1f\n\n", det_b);
+    puts("Matriz inversa de A");
+    imprimeMatriz(inv_a, n);
     puts("Matriz inversa de B");
     imprimeMatriz(inv_b, n);
     puts("Matriz de mudança de base de A para B");
-    imprimeMatriz(mat_mb, n);
+    imprimeMatriz(mb_ab, n);
+    puts("Matriz de mudança de base de B para A");
+    imprimeMatriz(mb_ba, n);
 
     return 0;
 } // fim do programa
@@ -73,9 +77,8 @@ int main(void){
 float **alocaMatriz(int n){
     float **mat;
     mat = calloc(n, sizeof(float*));
-    for(int i = 0; i < n; i++){
+    for(int i = 0; i < n; i++)
         mat[i] = calloc(n, sizeof(float));
-    }
     return mat;
 }
 
@@ -89,112 +92,66 @@ void preencheMatriz(float **mat, int n){
     printf("\n");
 }
 
-void imprimeMatriz(float **mat, int n){
-    for(int i = 0; i < n; i++){
-        printf("|");
-        for(int j = 0; j < n; j++){
-            printf(" %5.1f ", mat[i][j]);
-        }
-        printf("|\n");
-    }
-    printf("\n");
-}
-
-float determinanteCofator(float **mat, int n){
-    float det = 0, sinal = 1, **b;
-    int i, j, k, m, t;
-
-    b = alocaMatriz(n);
-    
-    if(n == 1){
+float determinante(float **mat, int n){
+    float **m = alocaMatriz(n-1);
+    float det = 0;
+    int x, y, sinal = 1;
+    if(n == 1)
         return mat[0][0];
+    for(int i = 0; i < n; i++){
+        x = y = 0;
+        for(int k = 1; k < n; k++){
+            for(int j = 0; j < n; j++){
+                if(i != j){
+                    m[x][y] = mat[k][j];
+                    y++;
+                }
+            }
+            x++;
+            y = 0;
+        }
+        det += sinal * mat[0][i] * determinante(m, n-1);
+        sinal *= -1;
     }
-    else{
-        det = 0;
-        //for para percorre toda as linhas da matriz
-        for(i = 0; i < n; i++){
-            // indice da matriz com a respectiva coluna e linha tirada
-            m = 0;
-            t = 0;
-            // codigo para tirar linhas e colunas e armazenar numa outra matriz
-            for(k = 0; k < n; k++){
-                for(j = 0; j < n; j++){
-                    //b[k][j] = 0;
-                    if(k != 0 && j != i){
-                        b[m][t] = mat[k][j];
-                        // controle do tamanho da matriz utilizada para o calculo da determinante
-                        if(t < (n - 2)){
-                            t++;
+    return det;
+}
+
+float **matrizInversa(float **mat_inv, float **mat, float det, int n){
+    float **mat_cof = alocaMatriz(n);
+    float **m = alocaMatriz(n);
+    int x, y;
+    if(n == 1){
+        **mat_inv = 1/det;
+        return mat_inv;
+    }
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < n; j++){
+            x = y = 0;
+            for(int k = 0; k < n; k++){
+                for(int l = 0; l < n; l++){
+                    if(k != i && l != j){
+                        m[x][y] = mat[k][l];
+                        if(y < n-2){
+                            y++;
                         }else{
-                            t = 0;
-                            m++;
+                            x++;
+                            y = 0;
                         }
                     }
                 }
             }
-            det = det + sinal * (mat[0][i] * determinanteCofator(b, n-1));
-            //mudança de sinal
-            sinal *= -1;
+            mat_cof[i][j] = pow(-1, i+j) * determinante(m, n-1);
         }
     }
-
-    return (det);
-}
-
-float **cofator(float **mat, int n){
-    float **cofator = alocaMatriz(n);
-    float **b = alocaMatriz(n);
-    int i, k, r, s, m, t;
-    
-    for(i = 0; i < n; i++){
-        for(k = 0; k < n; k++){
-            // indice da matriz com a respectiva coluna e linha tirada
-            m = 0;
-            t = 0;
-            // codigo para tirar linhas e colunas e armazenar numa outra matriz
-            for(r = 0; r < n; r++){
-                for(s = 0; s < n; s++){
-                    if(r != i && s != k){
-                        b[m][t] = mat[r][s];
-                        // controle do tamanho da matriz utilizada para o cofator
-                        if(t < (n - 2))
-                            t++;
-                        else{
-                            t = 0;
-                            m++;
-                        }
-                    }
-                }
-            }
-            // calculando cada cofator da Matriz de entrada
-            cofator[i][k] = pow(-1, i + k) * determinanteCofator(b, n-1);
-        }
-    }
-    
-    cofator = transposta(mat, cofator, n);
-    return cofator;
-}
-
-float **transposta(float **mat, float **cofator, int n){
-    float **inversa = alocaMatriz(n);
-    float **b = alocaMatriz(n);
-    float det;
-
     for(int i = 0; i < n; i++){
-        for(int k = 0; k < n; k++){
-            b[i][k] = cofator[k][i];
+        for(int j = 0; j < n; j++){
+            mat_inv[i][j] = mat_cof[j][i] / det;
         }
     }
-    det = determinanteCofator(mat, n);
-    for(int i = 0; i < n; i++){
-        for(int k = 0; k < n; k++){
-            inversa[i][k] = b[i][k] / det;
-        }
-    }
-    return inversa;
+    return mat_inv;
 }
 
-float **multiplicaMatrizes(float **mat1, float **mat2, float **mat3, int n){
+void matrizMudancaDeBase(float **mat1, float **mat2, float **mat3, int n){
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             for(int k = 0; k < n; k++){
@@ -202,5 +159,15 @@ float **multiplicaMatrizes(float **mat1, float **mat2, float **mat3, int n){
             }
         }
     }
-    return mat3;
+}
+
+void imprimeMatriz(float **mat, int n){
+    for(int i = 0; i < n; i++){
+        printf("|");
+        for(int j = 0; j < n; j++){
+            printf(" %6.2f ", mat[i][j]);
+        }
+        printf("|\n");
+    }
+    printf("\n");
 }
