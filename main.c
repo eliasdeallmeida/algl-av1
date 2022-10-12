@@ -3,83 +3,171 @@
 #include <math.h>
 
 // declaração das funções
-float **alocaMatriz(int n);
-void preencheMatriz(float **mat, int n);
-float determinante(float **mat, int n);
-float **matrizInversa(float **mat_inv, float **mat, float det, int n);
-void matrizMudancaDeBase(float **mat1, float **mat2, float **mat3, int n);
-void imprimeMatriz(float **mat, int n);
+void limpaTela();
+float **alocaMatriz(int);
+void liberaMatriz(float**, int);
+void preencheMatriz(float**, int);
+float determinante(float**, int);
+float **matrizInversa(float**, float**, float, int);
+float **matrizMudancaDeBase(float**, float**, int);
+void imprimeMatriz(float**, int);
 
 int main(void){
-    float **mat_a, **mat_b, **inv_a, **inv_b, **mb_ab, **mb_ba, det_a, det_b;
-    int n;
-
-    printf("Informe a dimensão da matriz: ");
-    scanf("%d",&n);
-
-    // alocação dinâmica das matrizes
-    mat_a = alocaMatriz(n);
-    mat_b = alocaMatriz(n);
-    inv_a = alocaMatriz(n);
-    inv_b = alocaMatriz(n);
-    mb_ab = alocaMatriz(n);
-    mb_ba = alocaMatriz(n);
-
-    // leitura das matrizes A e B
-    puts("Matriz A");
-    preencheMatriz(mat_a, n);
-    puts("Matriz B");
-    preencheMatriz(mat_b, n);
-
-    // determinante das matrizes A e B
-    det_a = determinante(mat_a, n);
-    det_b = determinante(mat_b, n);
-
-    // verifica se são bases para calcular matriz inversa
-    if(det_a && det_b){
-        inv_a = matrizInversa(inv_a, mat_a, det_a, n);
-        inv_b = matrizInversa(inv_b, mat_b, det_b, n);
-    }else{
-        if(!det_a && !det_b)
-            puts("Nenhuma delas são uma base!");
-        else if(!det_a)
-            puts("A matriz A não é uma base!");
-        else if(!det_b)
-            puts("A matriz B não é uma base!");
-        puts("Obs.: uma matriz é uma base quando é Linearmente Independente, ou seja, quando tem Determinante ≠ 0");
-        return 0;
-    }
+    float **mat_a, **mat_b, **mat_inv, **mat_mb, det;
+    int n, opcao, controle = 0;
     
-    // calcula as matrizes de mudança de base
-    matrizMudancaDeBase(inv_b, mat_a, mb_ab, n);
-    matrizMudancaDeBase(inv_a, mat_b, mb_ba, n);
+    do{
+        if(!controle){
+            limpaTela();
+            printf("\nInforme o tamanho da matriz [NxN]: ");
+            scanf("%d",&n);
+            // alocação dinâmica das matrizes
+            mat_a = alocaMatriz(n);
+            mat_b = alocaMatriz(n);
+            mat_inv = alocaMatriz(n);
+            mat_mb = alocaMatriz(n);
+            // leitura das matrizes A e B
+            puts("Matriz A");
+            preencheMatriz(mat_a, n);
+            puts("Matriz B");
+            preencheMatriz(mat_b, n);
+            controle++;
+        }
 
-    // saída de dados
-    puts("Matriz A");
-    imprimeMatriz(mat_a, n);
-    puts("Matriz B");
-    imprimeMatriz(mat_b, n);
-    printf("Determinante da matriz A = %.1f\n\n", det_a);
-    printf("Determinante da matriz B = %.1f\n\n", det_b);
-    puts("Matriz inversa de A");
-    imprimeMatriz(inv_a, n);
-    puts("Matriz inversa de B");
-    imprimeMatriz(inv_b, n);
-    puts("Matriz de mudança de base de A para B");
-    imprimeMatriz(mb_ab, n);
-    puts("Matriz de mudança de base de B para A");
-    imprimeMatriz(mb_ba, n);
+        printf("Pressione ENTER para continuar...");
+        setbuf(stdin, NULL);
+        getchar();
+        limpaTela();
+        
+        puts("Matriz A");
+        imprimeMatriz(mat_a, n);
+        puts("Matriz B");
+        imprimeMatriz(mat_b, n);
+        
+        printf("=-=-=-=-=-=-=-= MENU =-=-=-=-=-=-=-=\n");
+        puts("(1) determinante de A");
+        puts("(2) determinante de B");
+        puts("(3) matriz inversa de A");
+        puts("(4) matriz inversa de B");
+        puts("(5) matriz de mudaça de base A->B");
+        puts("(6) matriz de mudaça de base B->A");
+        puts("(7) reescrever matrizes");
+        puts("(8) alterar tamanho das matrizes");
+        puts("(9) sair");
+        printf(">>> Sua opção: ");
+        scanf("%d", &opcao);
+
+        switch(opcao){
+            case 1:
+                det = determinante(mat_a, n);
+                printf("\nDeterminante de A = %.1f\n\n", det);
+                break;
+            case 2:
+                det = determinante(mat_b, n);
+                printf("\nDeterminante de B = %.1f\n\n", det);
+                break;
+            case 3:
+                det = determinante(mat_a, n);
+                if(det){
+                    mat_inv = matrizInversa(mat_inv, mat_a, det, n);
+                    puts("\nMatriz inversa de A");
+                    imprimeMatriz(mat_inv, n);
+                }else{
+                    printf("\nMatriz A não é uma base!\n\n");
+                }
+                break;
+            case 4:
+                det = determinante(mat_b, n);
+                if(det){
+                    mat_inv = matrizInversa(mat_inv, mat_b, det, n);
+                    puts("\nMatriz inversa de B");
+                    imprimeMatriz(mat_inv, n);
+                }else{
+                    printf("\nMatriz B não é uma base!\n\n");
+                }
+                break;
+            case 5:
+                det = determinante(mat_b, n);
+                if(det){
+                    mat_inv = matrizInversa(mat_inv, mat_b, det, n);
+                    mat_mb = matrizMudancaDeBase(mat_inv, mat_a, n);
+                    puts("\nMatriz de mudança de base A->B");
+                    imprimeMatriz(mat_mb, n);
+                }else{
+                    printf("\nMatriz B não é uma base!\n\n");
+                }
+                break;
+            case 6:
+                det = determinante(mat_a, n);
+                if(det){
+                    mat_inv = matrizInversa(mat_inv, mat_a, det, n);
+                    mat_mb = matrizMudancaDeBase(mat_inv, mat_b, n);
+                    puts("\nMatriz de mudança de base B->A");
+                    imprimeMatriz(mat_mb, n);
+                }else{
+                    printf("\nMatriz A não é uma base!\n\n");
+                }
+                break;
+            case 7:
+                limpaTela();
+                puts("\nMatriz A");
+                preencheMatriz(mat_a, n);
+                puts("Matriz B");
+                preencheMatriz(mat_b, n);
+                break;
+            case 8:
+                controle = 0;
+                break;
+            case 9:
+                limpaTela();
+                puts("Programa encerrado.");
+                break;
+            default:
+                printf("\nOpção inválida!\n\n");
+        }
+    }while(opcao != 9);
+
+    // libera memória alocada
+    liberaMatriz(mat_a, n);
+    liberaMatriz(mat_b, n);
+    liberaMatriz(mat_inv, n);
+    liberaMatriz(mat_mb, n);
 
     return 0;
 } // fim do programa
 
 // funções utilizadas
+void limpaTela(){
+    #ifdef _WIN32
+        system("cls");
+    #elif _WIN64
+        system("cls");
+    #elif __linux__
+        system("clear");
+    #endif
+}
+
 float **alocaMatriz(int n){
     float **mat;
     mat = calloc(n, sizeof(float*));
-    for(int i = 0; i < n; i++)
+    if(mat == NULL){
+        puts("Memória insuficiente!");
+        exit(1);
+    }
+    for(int i = 0; i < n; i++){
         mat[i] = calloc(n, sizeof(float));
+        if(mat[i] == NULL){
+            puts("Memória insuficiente!");
+            exit(1);
+        }
+    }
     return mat;
+}
+
+void liberaMatriz(float **mat, int n){
+    for(int i = 0; i < n; i++)
+        free(mat[i]);
+    free(mat);
 }
 
 void preencheMatriz(float **mat, int n){
@@ -113,6 +201,7 @@ float determinante(float **mat, int n){
         det += sinal * mat[0][i] * determinante(m, n-1);
         sinal *= -1;
     }
+    liberaMatriz(m, n);
     return det;
 }
 
@@ -126,21 +215,21 @@ float **matrizInversa(float **mat_inv, float **mat, float det, int n){
     }
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
-            x = y = 0;
-            for(int k = 0; k < n; k++){
-                for(int l = 0; l < n; l++){
-                    if(k != i && l != j){
-                        m[x][y] = mat[k][l];
-                        if(y < n-2){
-                            y++;
-                        }else{
-                            x++;
-                            y = 0;
-                        }
+        x = y = 0;
+        for(int k = 0; k < n; k++){
+            for(int l = 0; l < n; l++){
+                if(k != i && l != j){
+                    m[x][y] = mat[k][l];
+                    if(y < n-2){
+                        y++;
+                    }else{
+                        x++;
+                        y = 0;
                     }
                 }
             }
-            mat_cof[i][j] = pow(-1, i+j) * determinante(m, n-1);
+        }
+        mat_cof[i][j] = pow(-1, i+j) * determinante(m, n-1);
         }
     }
     for(int i = 0; i < n; i++){
@@ -148,17 +237,21 @@ float **matrizInversa(float **mat_inv, float **mat, float det, int n){
             mat_inv[i][j] = mat_cof[j][i] / det;
         }
     }
+    liberaMatriz(mat_cof, n);
+    liberaMatriz(m, n);
     return mat_inv;
 }
 
-void matrizMudancaDeBase(float **mat1, float **mat2, float **mat3, int n){
+float **matrizMudancaDeBase(float **mat_inv, float **mat_ini, int n){
+    float **mat_mb = alocaMatriz(n);
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             for(int k = 0; k < n; k++){
-                mat3[i][j] += (mat1[i][k] * mat2[k][j]);
+                mat_mb[i][j] += (mat_inv[i][k] * mat_ini[k][j]);
             }
         }
     }
+    return mat_mb;
 }
 
 void imprimeMatriz(float **mat, int n){
