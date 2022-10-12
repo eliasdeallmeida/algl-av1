@@ -13,37 +13,37 @@ float **matrizMudancaDeBase(float**, float**, int);
 void imprimeMatriz(float**, int);
 
 int main(void){
-    float **mat_a, **mat_b, **mat_inv, **mat_mb, det;
+    float **mat_a, **mat_b, **mat_inv, **mat_mb, det_a, det_b;
     int n, opcao, controle = 0;
     
     do{
         if(!controle){
             limpaTela();
-            printf("\nInforme o tamanho da matriz [NxN]: ");
+            // recebe tamanho NxN
+            printf("Informe o tamanho da matriz [NxN]: ");
             scanf("%d",&n);
-            // alocação dinâmica das matrizes
+            // aloca dinamicamente a memória
             mat_a = alocaMatriz(n);
             mat_b = alocaMatriz(n);
             mat_inv = alocaMatriz(n);
             mat_mb = alocaMatriz(n);
-            // leitura das matrizes A e B
-            puts("Matriz A");
+            // recebe as matrizes A e B
+            puts("\nMatriz A");
             preencheMatriz(mat_a, n);
             puts("Matriz B");
             preencheMatriz(mat_b, n);
             controle++;
         }
-
         printf("Pressione ENTER para continuar...");
         setbuf(stdin, NULL);
         getchar();
         limpaTela();
-        
+        // mostra as matrizes na tela
         puts("Matriz A");
         imprimeMatriz(mat_a, n);
         puts("Matriz B");
         imprimeMatriz(mat_b, n);
-        
+        // exibe menu de opções
         printf("=-=-=-=-=-=-=-= MENU =-=-=-=-=-=-=-=\n");
         puts("(1) determinante de A");
         puts("(2) determinante de B");
@@ -56,20 +56,20 @@ int main(void){
         puts("(9) sair");
         printf(">>> Sua opção: ");
         scanf("%d", &opcao);
-
+        // executa os comandos para cada caso
         switch(opcao){
             case 1:
-                det = determinante(mat_a, n);
-                printf("\nDeterminante de A = %.1f\n\n", det);
+                det_a = determinante(mat_a, n);
+                printf("\nDeterminante de A = %.1f\n\n", det_a);
                 break;
             case 2:
-                det = determinante(mat_b, n);
-                printf("\nDeterminante de B = %.1f\n\n", det);
+                det_b = determinante(mat_b, n);
+                printf("\nDeterminante de B = %.1f\n\n", det_b);
                 break;
             case 3:
-                det = determinante(mat_a, n);
-                if(det){
-                    mat_inv = matrizInversa(mat_inv, mat_a, det, n);
+                det_a = determinante(mat_a, n);
+                if(det_a){
+                    mat_inv = matrizInversa(mat_inv, mat_a, det_a, n);
                     puts("\nMatriz inversa de A");
                     imprimeMatriz(mat_inv, n);
                 }else{
@@ -77,9 +77,9 @@ int main(void){
                 }
                 break;
             case 4:
-                det = determinante(mat_b, n);
-                if(det){
-                    mat_inv = matrizInversa(mat_inv, mat_b, det, n);
+                det_b = determinante(mat_b, n);
+                if(det_b){
+                    mat_inv = matrizInversa(mat_inv, mat_b, det_b, n);
                     puts("\nMatriz inversa de B");
                     imprimeMatriz(mat_inv, n);
                 }else{
@@ -87,30 +87,40 @@ int main(void){
                 }
                 break;
             case 5:
-                det = determinante(mat_b, n);
-                if(det){
-                    mat_inv = matrizInversa(mat_inv, mat_b, det, n);
+                det_a = determinante(mat_a, n);
+                det_b = determinante(mat_b, n);
+                if(det_a && det_b){
+                    mat_inv = matrizInversa(mat_inv, mat_b, det_b, n);
                     mat_mb = matrizMudancaDeBase(mat_inv, mat_a, n);
                     puts("\nMatriz de mudança de base A->B");
                     imprimeMatriz(mat_mb, n);
-                }else{
+                }else if(!det_a && !det_b){
+                    printf("\nNenhuma delas são bases!\n\n");
+                }else if(!det_a){
+                    printf("\nMatriz A não é uma base!\n\n");
+                }else if(!det_b){
                     printf("\nMatriz B não é uma base!\n\n");
                 }
                 break;
             case 6:
-                det = determinante(mat_a, n);
-                if(det){
-                    mat_inv = matrizInversa(mat_inv, mat_a, det, n);
+                det_a = determinante(mat_a, n);
+                det_b = determinante(mat_b, n);
+                if(det_a && det_b){
+                    mat_inv = matrizInversa(mat_inv, mat_a, det_a, n);
                     mat_mb = matrizMudancaDeBase(mat_inv, mat_b, n);
                     puts("\nMatriz de mudança de base B->A");
                     imprimeMatriz(mat_mb, n);
-                }else{
+                }else if(!det_a && !det_b){
+                    printf("\nNenhuma delas são bases!\n\n");
+                }else if(!det_a){
                     printf("\nMatriz A não é uma base!\n\n");
+                }else if(!det_b){
+                    printf("\nMatriz B não é uma base!\n\n");
                 }
                 break;
             case 7:
                 limpaTela();
-                puts("\nMatriz A");
+                puts("Matriz A");
                 preencheMatriz(mat_a, n);
                 puts("Matriz B");
                 preencheMatriz(mat_b, n);
