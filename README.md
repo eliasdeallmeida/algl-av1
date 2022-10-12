@@ -38,4 +38,4 @@ Trabalho sobre Matrizes que compõe a nota da 1ª etapa da disciplina de Álgebr
 - Rai Ferreira
 
 ## Licença
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT License](https://choosealicense.com/licenses/mit/)
